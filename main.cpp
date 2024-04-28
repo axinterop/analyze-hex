@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
-#include <queue>
+#include <vector>
+#include "graph.h"
 
 using namespace std;
 
@@ -196,32 +197,56 @@ void posibilities_for_pos(Board *B, int arr[], int pos) {
 }
 
 bool blue_won(Board *B) {
+    Graph g(B->fields_total);
     // Check for blue
-    queue<int> to_check;
-
-    for (int i = 0; i < B->size; i++) {
-        if (B->matrix[i] == FIELD_TYPE::BLUE) {
-            to_check.push(i);
+    vector<int> start_vertices;
+    for (int cur_p = 0; cur_p < B->fields_total; cur_p++) {
+        if (B->matrix[cur_p] == FIELD_TYPE::BLUE) {
+            if (cur_p / B->size == 0)
+                start_vertices.push_back(cur_p);
+            int moves[6] = {};
+            posibilities_for_pos(B, moves, cur_p);
+            for (int next_p: moves)
+                if (next_p != -1 && B->matrix[next_p] == FIELD_TYPE::BLUE)
+                    g.addEdge(cur_p, next_p);
         }
     }
+    for (int v: start_vertices) {
+        cout << v << ": ";
+        g.DFS(v);
+        cout << endl;
+    }
+    return true;
+}
 
-    if (to_check.empty())
-        return false;
-
-    while (!to_check.empty())
+bool red_won(Board *B) {
+    Graph g(B->fields_total);
+    // Check for red
+    vector<int> start_vertices;
+    for (int cur_p = 0; cur_p < B->fields_total; cur_p++) {
+        if (B->matrix[cur_p] == FIELD_TYPE::RED) {
+            if (cur_p / B->size == 0)
+                start_vertices.push_back(cur_p);
+            int moves[6] = {};
+            posibilities_for_pos(B, moves, cur_p);
+            for (int next_p: moves)
+                if (next_p != -1 && B->matrix[next_p] == FIELD_TYPE::RED)
+                    g.addEdge(cur_p, next_p);
+        }
+    }
+    for (int v: start_vertices) {
+        cout << v << ": ";
+        g.DFS(v);
+        cout << endl;
+    }
+    return true;
 }
 
 void is_game_over(Board *B) {
-    for (int i = 0; i < B->fields_total; i++) {
-        int moves[6] = {};
-        posibilities_for_pos(B, moves, i);
-        cout << i << ": ";
-        for (int move: moves) {
-            if (move != -1)
-                cout << move << " ";
-        }
-        cout << endl;
-    }
+    cout << "BLUE: " << endl;
+    blue_won(B);
+    cout << "RED: " << endl;
+    red_won(B);
 }
 
 int main() {
