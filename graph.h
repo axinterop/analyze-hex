@@ -3,17 +3,29 @@
 
 #include <iostream>
 #include <list>
+#include <queue>
+
+typedef enum {
+    EMPTY,
+    RED,
+    BLUE,
+} FIELD_TYPE;
+
+
 using namespace std;
 
 class Graph {
+public:
     int numVertices;
     list<int> *adjLists;
     bool *visited;
-public:
+
+    Graph();
     Graph(int V);
     ~Graph();
     void addEdge(int src, int dest);
-    void DFS(int vertex);
+    bool DFS(int vertex, int board_size, FIELD_TYPE check_for, int to_ignore = -1);
+    void printEdges();
 };
 
 
