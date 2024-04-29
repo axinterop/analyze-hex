@@ -15,31 +15,32 @@ Graph::Graph(int vertices) {
 void Graph::addEdge(int src, int dest) {
     adjLists[src].push_front(dest);
 }
-bool Graph::DFS(int startVertex, int board_size, FIELD_TYPE check_for, int to_ignore) {
+bool Graph::DFS(int v, int b_size, FIELD_TYPE check_for, int to_ignore, vector<int> *v_path) {
     if (to_ignore != -1) {
-        if (startVertex == to_ignore)
+        if (v == to_ignore)
             return false;
         visited[to_ignore] = true;
     }
 
     std::queue<int> queue;
-    queue.push(startVertex);
+    queue.push(v);
 
-
+    bool found_path = false;
 
     while (!queue.empty()) {
         int currentVertex = queue.front();
         queue.pop();
 
         if (!visited[currentVertex]) {
-//            cout << currentVertex << " ";
+            if (v_path != nullptr)
+                v_path->push_back(currentVertex);
             if (check_for == FIELD_TYPE::RED) {
-                if (currentVertex % board_size == board_size - 1)
-                    return true;
+                if (currentVertex % b_size == b_size - 1)
+                    found_path = true;
             }
             else if (check_for == FIELD_TYPE::BLUE) {
-                if (currentVertex / board_size == board_size - 1)
-                    return true;
+                if (currentVertex / b_size == b_size - 1)
+                    found_path = true;
             }
 
             visited[currentVertex] = true;
@@ -52,9 +53,7 @@ bool Graph::DFS(int startVertex, int board_size, FIELD_TYPE check_for, int to_ig
         }
     }
 
-//    cout << endl;
-
-    return false;
+    return found_path;
 }
 
 Graph::~Graph() {
@@ -71,5 +70,9 @@ void Graph::printEdges() {
             cout << v << " ";
         cout << endl;
     }
+}
+
+void Graph::forget_visited() {
+    std::fill(visited, visited + numVertices, false);
 }
 

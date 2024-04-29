@@ -13,6 +13,13 @@ int power_of_ten(int n) {
     return r;
 }
 
+bool vector_contains(vector<int> *v_path, int v) {
+    for (int f: *v_path)
+        if (f == v)
+            return true;
+    return false;
+}
+
 bool Board::init() {
     string response;
     getline(cin, response);
@@ -46,7 +53,6 @@ void Board::read() {
     string response;
     for (int row = 1; row < visual_height; row++) {
         getline(cin, response);
-
         int empties = 0;
         int reds = 0;
         int blues = 0;
@@ -201,43 +207,36 @@ void Board::posibilities_for_pos(int *arr, int pos) {
 bool Board::check_if_won(FIELD_TYPE check_for) {
     if (pawns_total() < size)
         return false;
-
-    vector<int> start_vertices;
-    int cur_p;
-
-    for (int i = 0; i < size; i++) {
-        if (check_for == RED)
-            cur_p = i * size;
-        else if (check_for == BLUE)
-            cur_p = i;
-        if (matrix[cur_p] == check_for)
-            start_vertices.push_back(cur_p);
-    }
-
-    for (int v : start_vertices) {
-        bool found_path = false;
-        if (check_for == BLUE)
-            found_path = blue_g.DFS(v, size, check_for);
-        else if (check_for == RED)
-            found_path = red_g.DFS(v, size, check_for);
-        if (found_path)
-            return true;
-    }
-    return false;
+    return DFS(check_for);
 }
 
 FIELD_TYPE Board::is_game_over() {
     if (check_if_won(RED)) {
-        cout << "YES RED\n";
         return FIELD_TYPE::RED;
-    }
-    else if (check_if_won(BLUE)) {
-        cout << "YES BLUE\n";
+    } else if (check_if_won(BLUE)) {
         return FIELD_TYPE::BLUE;
     } else {
-        cout << "NO\n";
         return FIELD_TYPE::EMPTY;
     }
+}
+
+bool Board::is_possible() {
+    if (!is_correct())
+        return false;
+    FIELD_TYPE won;
+    won = is_game_over();
+    if (won == FIELD_TYPE::EMPTY)
+        return true;
+
+    if (won == FIELD_TYPE::RED && pawns_red - 1 != pawns_blue)
+        return false;
+    if (won == FIELD_TYPE::BLUE && pawns_red != pawns_blue)
+        return false;
+
+
+
+
+    return false;
 }
 
 void Board::print_graphs() {
@@ -256,4 +255,28 @@ void Board::print_stats() {
     cout << "Red: " << pawns_red << ", Blue: " << pawns_blue << endl;
     cout << "Total pawns: " << pawns_red + pawns_blue << endl;
     cout << "Height: " << visual_height << endl;
+}
+
+bool Board::DFS(FIELD_TYPE check_for, int to_ignore, vector<int> *v_path) {
+    vector<int> start_vertices;
+    int cur_p;
+    for (int i = 0; i < size; i++) {
+        if (check_for == RED)
+            cur_p = i * size;
+        else if (check_for == BLUE)
+            cur_p = i;
+        if (matrix[cur_p] == check_for)
+            start_vertices.push_back(cur_p);
+    }
+
+    bool found_path;
+    for (int start_v: start_vertices) {
+        if (check_for == BLUE)
+            found_path = blue_g.DFS(start_v, size, check_for, to_ignore, v_path);
+        else if (check_for == RED)
+            found_path = red_g.DFS(start_v, size, check_for, to_ignore, v_path);
+        if (found_path)
+            return true;
+    }
+    return false;
 }

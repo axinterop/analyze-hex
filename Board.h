@@ -22,6 +22,8 @@ public:
     bool is_correct();
     bool check_if_won(FIELD_TYPE check_for);
     FIELD_TYPE is_game_over();
+    bool is_possible();
+    bool DFS(FIELD_TYPE check_for, int to_ignore = -1, vector<int> *v_path = nullptr);
 
     void print_matrix();
     void print_graphs();

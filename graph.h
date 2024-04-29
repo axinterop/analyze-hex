@@ -24,8 +24,9 @@ public:
     Graph(int V);
     ~Graph();
     void addEdge(int src, int dest);
-    bool DFS(int vertex, int board_size, FIELD_TYPE check_for, int to_ignore = -1);
+    bool DFS(int vertex, int board_size, FIELD_TYPE check_for, int to_ignore = -1, vector<int> *v_path = nullptr);
     void printEdges();
+    void forget_visited();
 };
 
 
