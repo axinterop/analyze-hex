@@ -2,6 +2,8 @@
 
 #include "Board.h"
 
+
+
 int power_of_ten(int n) {
     int r = 0;
     while (n) {
@@ -13,16 +15,16 @@ int power_of_ten(int n) {
     return r;
 }
 
-bool vector_contains(vector<int> *v_path, int v) {
-    for (int f: *v_path)
-        if (f == v)
-            return true;
-    return false;
+void print_yes_no(bool a) {
+    if (a)
+        cout << "YES\n";
+    else
+        cout << "NO\n";
 }
 
 bool Board::init() {
     string response;
-    getline(cin, response);
+    std::getline(cin, response);
     if (response.size() < 4 || isalnum(response[0]))
         return false;
 
@@ -105,8 +107,34 @@ void Board::read() {
 }
 
 void Board::read_reqs() {
-    return;
+    string response;
+    while (1 == 1) {
+        char future_ch;
+        future_ch = cin.peek();
+        if (future_ch == '\n') {
+            cin.get();
+            continue;
+        } else if (isalnum(future_ch)) {
+            getline(cin, response);
+            if (response == "BOARD_SIZE")
+                output_mask += 1;
+            else if (response == "PAWNS_NUMBER")
+                output_mask += 2;
+            else if (response == "IS_BOARD_CORRECT")
+                output_mask += 4;
+            else if (response == "IS_GAME_OVER")
+                output_mask += 8;
+            else if (response == "IS_BOARD_POSSIBLE")
+                output_mask += 16;
+            else if (!(output_mask & 32) && response.find("NAIVE") != -1)
+                output_mask += 32;
+            else if (!(output_mask & 64) && response.find("PERFECT") != -1)
+                output_mask += 64;
+        } else
+            break;
+    }
 }
+
 
 void Board::create_graphs() {
     red_g = *new Graph(fields_total);
@@ -207,10 +235,13 @@ void Board::posibilities_for_pos(int *arr, int pos) {
 bool Board::check_if_won(FIELD_TYPE check_for) {
     if (pawns_total() < size)
         return false;
-    return DFS(check_for);
+    return DFS(check_for, false);
 }
 
 FIELD_TYPE Board::is_game_over() {
+    if (!OI.IS_BOARD_CORRECT)
+        return FIELD_TYPE::EMPTY;
+
     if (check_if_won(RED)) {
         return FIELD_TYPE::RED;
     } else if (check_if_won(BLUE)) {
@@ -221,21 +252,23 @@ FIELD_TYPE Board::is_game_over() {
 }
 
 bool Board::is_possible() {
-    if (!is_correct())
+    if (!OI.IS_BOARD_CORRECT)
         return false;
-    FIELD_TYPE won;
-    won = is_game_over();
+    FIELD_TYPE won = OI.IS_GAME_OVER;
     if (won == FIELD_TYPE::EMPTY)
         return true;
-
     if (won == FIELD_TYPE::RED && pawns_red - 1 != pawns_blue)
         return false;
     if (won == FIELD_TYPE::BLUE && pawns_red != pawns_blue)
         return false;
 
-
-
-
+    vector<int> *all_vertices = get_all_vertices(won);
+    bool found_path;
+    for (int v_ignore: *all_vertices) {
+        found_path = DFS(won, true, v_ignore);
+        if (!found_path)
+            return true;
+    }
     return false;
 }
 
@@ -257,7 +290,14 @@ void Board::print_stats() {
     cout << "Height: " << visual_height << endl;
 }
 
-bool Board::DFS(FIELD_TYPE check_for, int to_ignore, vector<int> *v_path) {
+bool Board::DFS(FIELD_TYPE check_for, bool forget, int to_ignore, vector<int> *v_path) {
+    if (forget) {
+        if (check_for == RED)
+            red_g.forget_visited();
+        else if (check_for == BLUE)
+            blue_g.forget_visited();
+    }
+
     vector<int> start_vertices;
     int cur_p;
     for (int i = 0; i < size; i++) {
@@ -279,4 +319,67 @@ bool Board::DFS(FIELD_TYPE check_for, int to_ignore, vector<int> *v_path) {
             return true;
     }
     return false;
+}
+
+vector<int> *Board::get_all_vertices(FIELD_TYPE get_for) {
+    auto *result = new vector<int>();
+    for (int pi = 0; pi < fields_total; pi++) {
+        if (get_for == RED) {
+            if (!red_g.adjLists[pi].empty())
+                result->push_back(pi);
+        } else if (get_for == BLUE) {
+            if (!blue_g.adjLists[pi].empty())
+                result->push_back(pi);
+        }
+    }
+    return result;
+}
+
+void Board::print_reqs() {
+    if (output_mask & 1) {
+        cout << OI.BOARD_SIZE << endl;
+        cout << endl;
+    }
+
+    if (output_mask & 2) {
+        cout << OI.PAWNS_NUMBER << endl;
+        cout << endl;
+    }
+
+    if (output_mask & 4) {
+        print_yes_no(OI.IS_BOARD_CORRECT);
+        cout << endl;
+    }
+
+    if (output_mask & 8) {
+        if (OI.IS_GAME_OVER == RED)
+            cout << "YES RED\n";
+        else if (OI.IS_GAME_OVER == BLUE)
+            cout << "YES BLUE\n";
+        else
+            cout << "NO\n";
+        cout << endl;
+    }
+
+    if (output_mask & 16) {
+        print_yes_no(OI.IS_BOARD_POSSIBLE);
+        cout << endl;
+    }
+
+    if (output_mask & 32) {
+        print_yes_no(OI.CAN_RED_WIN_IN_1_MOVE_WITH_NAIVE_OPPONENT);
+        print_yes_no(OI.CAN_BLUE_WIN_IN_1_MOVE_WITH_NAIVE_OPPONENT);
+        print_yes_no(OI.CAN_RED_WIN_IN_2_MOVES_WITH_NAIVE_OPPONENT);
+        print_yes_no(OI.CAN_BLUE_WIN_IN_2_MOVES_WITH_NAIVE_OPPONENT);
+        cout << endl;
+    }
+
+    if (output_mask & 64) {
+        print_yes_no(OI.CAN_RED_WIN_IN_1_MOVE_WITH_PERFECT_OPPONENT);
+        print_yes_no(OI.CAN_BLUE_WIN_IN_1_MOVE_WITH_PERFECT_OPPONENT);
+        print_yes_no(OI.CAN_RED_WIN_IN_2_MOVES_WITH_PERFECT_OPPONENT);
+        print_yes_no(OI.CAN_BLUE_WIN_IN_2_MOVES_WITH_PERFECT_OPPONENT);
+        cout << endl;
+    }
+
 }
