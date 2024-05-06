@@ -1,6 +1,5 @@
-#include <iostream>
 #include "Board.h"
-
+#include <iostream>
 
 int main() {
     while (!cin.eof()) {
@@ -10,7 +9,6 @@ int main() {
         B.read();
         B.read_reqs();
         B.create_graphs();
-
 
         B.OI.BOARD_SIZE = B.size;
 
@@ -22,25 +20,8 @@ int main() {
 
         B.OI.IS_BOARD_POSSIBLE = B.is_possible();
 
-
-//        {
-//            if (B.is_correct()) {
-//                FIELD_TYPE won = B.is_game_over();
-//                if (won == RED)
-//                    cout << "YES RED\n";
-//                else if (won == BLUE)
-//                    cout << "YES BLUE\n";
-//                else
-//                    cout << "NO\n";
-//            } else
-//                cout << "NO\n";
-//            cout << endl;
-//        }
-
         B.print_reqs();
-
     }
-
 
     return 0;
 }

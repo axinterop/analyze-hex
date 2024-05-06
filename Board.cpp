@@ -2,8 +2,7 @@
 
 #include "Board.h"
 
-
-
+// Only for debug purposes
 int power_of_ten(int n) {
     int r = 0;
     while (n) {
@@ -47,7 +46,7 @@ bool Board::init() {
     fields_total = board_fields_num;
     pawns_red = 0;
     pawns_blue = 0;
-    matrix = (int *) calloc(board_fields_num, sizeof(matrix));
+    matrix = (int *)calloc(board_fields_num, sizeof(matrix));
     return true;
 }
 
@@ -63,9 +62,11 @@ void Board::read() {
         bool count_empty = false;
         int in_this_row = -1;
         FIELD_TYPE ft = EMPTY;
-        for (char P: response) {
-            if (P == '<') count_empty = true;
-            if (count_empty && P == ' ') emptyCount++;
+        for (char P : response) {
+            if (P == '<')
+                count_empty = true;
+            if (count_empty && P == ' ')
+                emptyCount++;
             if (emptyCount == 3) {
                 empties++;
                 ft = EMPTY;
@@ -135,17 +136,16 @@ void Board::read_reqs() {
     }
 }
 
-
 void Board::create_graphs() {
     red_g = *new Graph(fields_total);
     blue_g = *new Graph(fields_total);
 
     for (int cur_p = 0; cur_p < fields_total; cur_p++) {
-        auto cur_ft = (FIELD_TYPE) matrix[cur_p];
+        auto cur_ft = (FIELD_TYPE)matrix[cur_p];
         if (cur_ft != FIELD_TYPE::EMPTY) {
             int moves[6] = {};
             posibilities_for_pos(moves, cur_p);
-            for (int next_p: moves)
+            for (int next_p : moves)
                 if (next_p != -1 && matrix[next_p] == cur_ft)
                     if (cur_ft == FIELD_TYPE::RED)
                         red_g.addEdge(cur_p, next_p);
@@ -155,14 +155,11 @@ void Board::create_graphs() {
     }
 }
 
-void Board::destroy() {
-    free(matrix);
-}
+void Board::destroy() { free(matrix); }
 
-Board::~Board() {
-    destroy();
-}
+Board::~Board() { destroy(); }
 
+// Only for debug purposes
 void Board::print_matrix() {
     if (power_of_ten(size) >= 1) {
         cout << " ";
@@ -206,12 +203,8 @@ bool Board::is_correct() {
 void Board::posibilities_for_pos(int *arr, int pos) {
     int cur_p = pos;
     int next_poses[6] = {
-            cur_p - (size + 1),
-            cur_p - size,
-            cur_p - 1,
-            cur_p + 1,
-            cur_p + size,
-            cur_p + size + 1,
+        cur_p - (size + 1), cur_p - size, cur_p - 1,
+        cur_p + 1,          cur_p + size, cur_p + size + 1,
     };
     for (int i = 0; i < 6; i++) {
         int next_p = next_poses[i];
@@ -264,7 +257,7 @@ bool Board::is_possible() {
 
     vector<int> *all_vertices = get_all_vertices(won);
     bool found_path;
-    for (int v_ignore: *all_vertices) {
+    for (int v_ignore : *all_vertices) {
         found_path = DFS(won, true, v_ignore);
         if (!found_path)
             return true;
@@ -272,6 +265,7 @@ bool Board::is_possible() {
     return false;
 }
 
+// Only for debug purposes
 void Board::print_graphs() {
     cout << "RED GRAPH:" << endl;
     red_g.printEdges();
@@ -282,6 +276,7 @@ void Board::print_graphs() {
     cout << "----------------\n" << endl;
 }
 
+// Only for debug purposes
 void Board::print_stats() {
     cout << "Board size: " << size << "x" << size << endl;
     cout << "Total fields: " << fields_total << endl;
@@ -290,7 +285,8 @@ void Board::print_stats() {
     cout << "Height: " << visual_height << endl;
 }
 
-bool Board::DFS(FIELD_TYPE check_for, bool forget, int to_ignore, vector<int> *v_path) {
+bool Board::DFS(FIELD_TYPE check_for, bool forget, int to_ignore,
+                vector<int> *v_path) {
     if (forget) {
         if (check_for == RED)
             red_g.forget_visited();
@@ -310,9 +306,10 @@ bool Board::DFS(FIELD_TYPE check_for, bool forget, int to_ignore, vector<int> *v
     }
 
     bool found_path;
-    for (int start_v: start_vertices) {
+    for (int start_v : start_vertices) {
         if (check_for == BLUE)
-            found_path = blue_g.DFS(start_v, size, check_for, to_ignore, v_path);
+            found_path =
+                blue_g.DFS(start_v, size, check_for, to_ignore, v_path);
         else if (check_for == RED)
             found_path = red_g.DFS(start_v, size, check_for, to_ignore, v_path);
         if (found_path)
@@ -381,5 +378,4 @@ void Board::print_reqs() {
         print_yes_no(OI.CAN_BLUE_WIN_IN_2_MOVES_WITH_PERFECT_OPPONENT);
         cout << endl;
     }
-
 }
