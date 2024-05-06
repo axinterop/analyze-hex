@@ -1,5 +1,5 @@
 # Hex (position analyzer)
-The project was done as a part of my university study. Its main objective was to exercise implementing graphs and DFS algorithm.
+The project was done as a part of my university study. Its main objective was to exercise graphs implementation and DFS algorithm.
 The program itself accepts ASCII drawn hex board (see [Examples](#Examples)) of different sizes (from 1x1 to 11x11), analyzes it and produces output based on query provided "below" the board.
 
 # Input
